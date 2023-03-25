@@ -48,6 +48,7 @@ class DatasetMapperWithSupportBDD:
         else:
             self.crop_gen = None
 
+        # TODO:  may need to include more transformation to provide a more diverse support set
         self.tfm_gens = utils.build_transform_gen(cfg, is_train)
 
         # fmt: off

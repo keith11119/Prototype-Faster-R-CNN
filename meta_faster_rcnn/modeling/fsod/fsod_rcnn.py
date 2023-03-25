@@ -303,6 +303,7 @@ class FsodRCNN(nn.Module):
         losses.update(proposal_losses)
         return losses
 
+    # TODO: change to not using few shot to test is needed
     def init_model_bdd(self):
         if 1:
             if self.test_seeds == 0:
