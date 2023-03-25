@@ -14,10 +14,10 @@ MODEL:
     FREEZE_AT: 3
   #PIXEL_MEAN: [102.9801, 115.9465, 122.7717]
 DATASETS:
-  TRAIN: ("coco_2017_train_nonvoc",) #("coco_2017_train",)
-  TEST: ("coco_2017_val",)
+  TRAIN: ("bdd_trainval_all",) #("coco_2017_train",)
+  TEST: ("bdd_test_all",)
 DATALOADER:
-  NUM_WORKERS: 8
+  NUM_WORKERS: 2
 SOLVER:
   IMS_PER_BATCH: 8 #16
   BASE_LR: 0.004 #0.02
@@ -30,8 +30,8 @@ SOLVER:
   #WEIGHT_DECAY_BIAS: 0.0
 INPUT:
   FS:
-    SUPPORT_WAY: 2
-    SUPPORT_SHOT: 10
+    SUPPORT_WAY: 10
+    SUPPORT_SHOT: 50
   MIN_SIZE_TRAIN: (440, 472, 504, 536, 568, 600) #(600,) #(640, 672, 704, 736, 768, 800)
   MAX_SIZE_TRAIN: 1000
   MIN_SIZE_TEST: 600

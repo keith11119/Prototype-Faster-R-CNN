@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Meta-Faster-R-CNN.iml" filepath="$PROJECT_DIR$/.idea/Meta-Faster-R-CNN.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Prototype-Faster-R-CNN.iml" filepath="$PROJECT_DIR$/.idea/Prototype-Faster-R-CNN.iml" />
     </modules>
   </component>
 </project>
