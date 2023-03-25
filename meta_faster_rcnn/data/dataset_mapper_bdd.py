@@ -21,10 +21,10 @@ from detectron2.data.catalog import MetadataCatalog
 This file contains the default mapping that's applied to "dataset dicts".
 """
 
-__all__ = ["DatasetMapperWithSupportVOC"]
+__all__ = ["DatasetMapperWithSupportBDD"]
 
 
-class DatasetMapperWithSupportVOC:
+class DatasetMapperWithSupportBDD:
     """
     A callable which takes a dataset dict in Detectron2 Dataset format,
     and map it into a format used by the model.
@@ -83,16 +83,16 @@ class DatasetMapperWithSupportVOC:
             self.support_on = True
             if self.few_shot:
                 if self.seeds == 0:
-                    self.support_df = pd.read_pickle("./datasets/pascal_voc/{}.pkl".format(cfg.DATASETS.TRAIN[0]))
-                    print("training support_df=./datasets/pascal_voc/{}.pkl".format(cfg.DATASETS.TRAIN[0]))
+                    self.support_df = pd.read_pickle("./datasets/bdd/{}.pkl".format(cfg.DATASETS.TRAIN[0]))
+                    print("training support_df=./datasets/bdd/{}.pkl".format(cfg.DATASETS.TRAIN[0]))
                 else:
-                    self.support_df = pd.read_pickle("./datasets/pascal_voc/seed{}/{}.pkl".format(self.seeds, cfg.DATASETS.TRAIN[0]))
-                    print("training support_df=", "./datasets/pascal_voc/seed{}/{}.pkl".format(self.seeds, cfg.DATASETS.TRAIN[0]))
+                    self.support_df = pd.read_pickle("./datasets/bdd/seed{}/{}.pkl".format(self.seeds, cfg.DATASETS.TRAIN[0]))
+                    print("training support_df=", "./datasets/bdd/seed{}/{}.pkl".format(self.seeds, cfg.DATASETS.TRAIN[0]))
             else:
                 for idx, dataset_name in enumerate(cfg.DATASETS.TRAIN):
                     # print('loading support of ', dataset_name)
-                    support_df_tmp = pd.read_pickle("./datasets/pascal_voc/{}.pkl".format(dataset_name))
-                    print("training support_df=", "./datasets/pascal_voc/{}.pkl".format(dataset_name))
+                    support_df_tmp = pd.read_pickle("./datasets/bdd/{}.pkl".format(dataset_name))
+                    print("training support_df=", "./datasets/bdd/{}.pkl".format(dataset_name))
                     if idx == 0:
                         self.support_df = support_df_tmp
                     else:
@@ -248,7 +248,7 @@ class DatasetMapperWithSupportVOC:
             support_db = self.support_df.loc[self.support_df['id'] == support_id, :]
             assert support_db['id'].values[0] == support_id
             
-            support_data = utils.read_image("./datasets/pascal_voc/" + support_db["file_path"].tolist()[0], format=self.img_format)
+            support_data = utils.read_image("./datasets/bdd/" + support_db["file_path"].tolist()[0], format=self.img_format)
             support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
             support_box = support_db['support_box'].tolist()[0]
             # print('support_data.shape=', support_data.shape)
@@ -282,7 +282,7 @@ class DatasetMapperWithSupportVOC:
                     support_db = self.support_df.loc[self.support_df['id'] == support_id, :]
                     assert support_db['id'].values[0] == support_id
 
-                    support_data = utils.read_image("./datasets/pascal_voc/" + support_db["file_path"].tolist()[0], format=self.img_format)
+                    support_data = utils.read_image("./datasets/bdd/" + support_db["file_path"].tolist()[0], format=self.img_format)
                     support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
                     support_box = support_db['support_box'].tolist()[0]
                     support_data_all[mixup_i] = support_data

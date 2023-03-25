@@ -67,7 +67,7 @@ class FsodRCNN(nn.Module):
         self.logger = logging.getLogger(__name__)
         self.support_dir = cfg.OUTPUT_DIR
 
-        self.evaluation_dataset = 'voc'
+        self.evaluation_dataset = 'bdd'
         self.evaluation_shot = 10
         self.keepclasses = 'all1'
         self.test_seeds = 0
@@ -82,6 +82,8 @@ class FsodRCNN(nn.Module):
             self.init_model_voc()
         elif self.evaluation_dataset == 'coco':
             self.init_model_coco()
+        elif self.evaluation_dataset == 'bdd':
+            self.init_model_bdd()
 
     @property
     def device(self):
@@ -301,6 +303,65 @@ class FsodRCNN(nn.Module):
         losses.update(proposal_losses)
         return losses
 
+    def init_model_bdd(self):
+        if 1:
+            if self.test_seeds == 0:
+                support_path = './datasets/bdd/bdd_trainval_{}_{}shot.pkl'.format(self.keepclasses,
+                                                                                              self.evaluation_shot)
+            elif self.test_seeds >= 0:
+                support_path = './datasets/bdd/seed{}/bdd_trainval_{}_{}shot.pkl'.format(self.test_seeds,
+                                                                                                     self.keepclasses,
+                                                                                                     self.evaluation_shot)
+
+            support_df = pd.read_pickle(support_path)
+
+            min_shot = self.evaluation_shot
+            max_shot = self.evaluation_shot
+            self.support_dict = {'res4_avg': {}, 'res5_avg': {}}
+            for cls in support_df['category_id'].unique():
+                support_cls_df = support_df.loc[support_df['category_id'] == cls, :].reset_index()
+                support_data_all = []
+                support_box_all = []
+
+                for index, support_img_df in support_cls_df.iterrows():
+                    # need to check what is file path in here
+                    img_path = os.path.join('./datasets/bdd', support_img_df['file_path'])
+                    support_data = utils.read_image(img_path, format='BGR')
+                    support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
+                    support_data_all.append(support_data)
+
+                    support_box = support_img_df['support_box']
+                    support_box_all.append(Boxes([support_box]).to(self.device))
+
+                min_shot = min(min_shot, len(support_box_all))
+                max_shot = max(max_shot, len(support_box_all))
+                # support images
+                support_images = [x.to(self.device) for x in support_data_all]
+                support_images = [(x - self.pixel_mean) / self.pixel_std for x in support_images]
+                support_images = ImageList.from_tensors(support_images, self.backbone.size_divisibility)
+                support_features = self.backbone(support_images.tensor)
+
+                res4_pooled = self.roi_heads.roi_pooling(support_features, support_box_all)
+                res4_avg = res4_pooled.mean(0, True)
+                res4_avg = res4_avg.mean(dim=[2, 3], keepdim=True)
+                self.support_dict['res4_avg'][cls] = res4_avg.detach().cpu().data
+
+                res5_feature = self.roi_heads._shared_roi_transform([support_features[f] for f in self.in_features],
+                                                                    support_box_all)
+                res5_avg = res5_feature.mean(0, True)
+                self.support_dict['res5_avg'][cls] = res5_avg.detach().cpu().data
+
+                del res4_avg
+                del res4_pooled
+                del support_features
+                del res5_feature
+                del res5_avg
+
+            for res_key, res_dict in self.support_dict.items():
+                for cls_key, feature in res_dict.items():
+                    self.support_dict[res_key][cls_key] = feature.cuda()
+
+            print("min_shot={}, max_shot={}".format(min_shot, max_shot))
     def init_model_voc(self):
         if 1:
             if self.test_seeds == 0:
@@ -356,7 +417,6 @@ class FsodRCNN(nn.Module):
                     self.support_dict[res_key][cls_key] = feature.cuda()
 
             print("min_shot={}, max_shot={}".format(min_shot, max_shot))
-
 
     def init_model_coco(self):
         if 1:
