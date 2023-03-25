@@ -1,0 +1,5 @@
+datasets/bdd/BDD
+datasets/bdd/bdd_trainval_all
+datasets/bdd/bdd_trainval_all.pkl
+Datasets/.DS_Store
+Datasets/bdd/.DS_Store
