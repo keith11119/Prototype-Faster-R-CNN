@@ -25,7 +25,7 @@ INPUT:
   MIN_SIZE_TEST: 600
   MAX_SIZE_TEST: 1000
 DATASETS:
-  TRAIN: ("bdd_trainval_all", "bdd_trainval_all")
+  TRAIN: ("bdd_trainval_all",)
   TEST: ("bdd_test_all",)
   TEST_KEEPCLASSES: 'all'
   TEST_SHOTS: (1,2,3,5,10)
