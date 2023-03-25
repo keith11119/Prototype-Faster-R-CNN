@@ -23,7 +23,7 @@ from detectron2.evaluation import (
 )
 
 from meta_faster_rcnn.config import get_cfg
-from meta_faster_rcnn.data import DatasetMapperWithSupportCOCO, DatasetMapperWithSupportVOC
+from meta_faster_rcnn.data import DatasetMapperWithSupportCOCO, DatasetMapperWithSupportVOC, DatasetMapperWithSupportBDD
 from meta_faster_rcnn.data.build import build_detection_train_loader, build_detection_test_loader
 from meta_faster_rcnn.solver import build_optimizer
 from meta_faster_rcnn.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
@@ -53,8 +53,10 @@ class Trainer(DefaultTrainer):
         """
         if 'coco' in cfg.DATASETS.TRAIN[0]:
             mapper = DatasetMapperWithSupportCOCO(cfg)
-        else:
+        elif 'voc' in cfg.DATASETS.TRAIN[0]:
             mapper = DatasetMapperWithSupportVOC(cfg)
+        elif 'bdd' in cfg.DATASETS.TRAIN[0]:
+            mapper = DatasetMapperWithSupportBDD(cfg)
         return build_detection_train_loader(cfg, mapper)
 
     @classmethod
