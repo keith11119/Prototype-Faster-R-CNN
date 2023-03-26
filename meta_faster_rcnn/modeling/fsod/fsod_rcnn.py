@@ -69,7 +69,7 @@ class FsodRCNN(nn.Module):
 
         self.evaluation_dataset = 'bdd'
         self.evaluation_shot = 10
-        self.keepclasses = 'all1'
+        self.keepclasses = 'all'
         self.test_seeds = 0
 
     def init_support_features(self, evaluation_dataset, evaluation_shot, keepclasses, test_seeds):

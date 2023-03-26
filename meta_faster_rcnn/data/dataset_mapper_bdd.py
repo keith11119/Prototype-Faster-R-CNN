@@ -209,7 +209,8 @@ class DatasetMapperWithSupportBDD:
         return dataset_dict
 
     def generate_support(self, dataset_dict):
-        support_way = self.support_way #2
+        # not using the support_way from config file any more
+        # support_way = self.support_way
         support_shot = self.support_shot #5
         
         query_cls = dataset_dict['annotations'][0]['category_id']
@@ -217,6 +218,8 @@ class DatasetMapperWithSupportBDD:
         all_cls = self.support_df.loc[self.support_df['image_id']==query_img, 'category_id'].tolist()
         # print("all_cls=", all_cls)
         # all_cls = dataset_dict['all_cls']
+        all_unique_cls = self.support_df['category_id'].unique()
+        support_way = len(all_unique_cls)
 
         # Crop support data and get new support box in the support data
         support_data_all = np.zeros((support_way * support_shot, 3, 320, 320), dtype = np.float32)
@@ -230,65 +233,35 @@ class DatasetMapperWithSupportBDD:
         # for item in dataset_dict['annotations']:
         #     used_id_ls.append(item['id'])
         #used_category_id = [query_cls]
+
         used_category_id = list(set(all_cls))
         support_category_id = []
         mixup_i = 0
 
-        for shot in range(support_shot):
-            # Support image and box
-            support_list = self.support_df.loc[(self.support_df['category_id'] == query_cls) & (~self.support_df['image_id'].isin(used_image_id)) & (~self.support_df['id'].isin(used_id_ls)), 'id']
-            if support_list.empty:
-                continue
-            else:
-                support_id = support_list.sample().tolist()[0]
-            support_cls = self.support_df.loc[self.support_df['id'] == support_id, 'category_id'].tolist()[0]
-            support_img = self.support_df.loc[self.support_df['id'] == support_id, 'image_id'].tolist()[0]
-            used_id_ls.append(support_id) 
-            # used_image_id.append(support_img)
+        for way, current_cls in enumerate(all_unique_cls):
+            for shot in range(support_shot):
+                # Support image and box
+                support_list = self.support_df.loc[(self.support_df['category_id'] == current_cls) & (~self.support_df['image_id'].isin(used_image_id)) & (~self.support_df['id'].isin(used_id_ls)), 'id']
+                if support_list.empty:
+                    continue
+                else:
+                    support_id = support_list.sample().tolist()[0]
+                support_cls = self.support_df.loc[self.support_df['id'] == support_id, 'category_id'].tolist()[0]
+                support_img = self.support_df.loc[self.support_df['id'] == support_id, 'image_id'].tolist()[0]
+                used_id_ls.append(support_id)
+                # used_image_id.append(support_img)
 
-            support_db = self.support_df.loc[self.support_df['id'] == support_id, :]
-            assert support_db['id'].values[0] == support_id
-            
-            support_data = utils.read_image("./datasets/bdd/" + support_db["file_path"].tolist()[0], format=self.img_format)
-            support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
-            support_box = support_db['support_box'].tolist()[0]
-            # print('support_data.shape=', support_data.shape)
-            support_data_all[mixup_i] = support_data
-            # print('len(support_box)=', len(support_box))
-            support_box_all[mixup_i] = support_box
-            support_category_id.append(support_cls) #0) #support_cls)
-            mixup_i += 1
+                support_db = self.support_df.loc[self.support_df['id'] == support_id, :]
+                assert support_db['id'].values[0] == support_id
 
-        if support_way == 1:
-            pass
-        else:
-            for way in range(support_way-1):
-                other_cls = self.support_df.loc[(~self.support_df['category_id'].isin(used_category_id)), 'category_id'].drop_duplicates().sample().tolist()[0]
-                used_category_id.append(other_cls)
-                for shot in range(support_shot):
-                    # Support image and box
-
-                    support_list = self.support_df.loc[(self.support_df['category_id'] == other_cls) & (~self.support_df['image_id'].isin(used_image_id)) & (~self.support_df['id'].isin(used_id_ls)), 'id']
-                    if support_list.empty:
-                        continue
-                    else:
-                        support_id = support_list.sample().tolist()[0]
-                     
-                    support_cls = self.support_df.loc[self.support_df['id'] == support_id, 'category_id'].tolist()[0]
-                    support_img = self.support_df.loc[self.support_df['id'] == support_id, 'image_id'].tolist()[0]
-
-                    used_id_ls.append(support_id) 
-                    # used_image_id.append(support_img)
-
-                    support_db = self.support_df.loc[self.support_df['id'] == support_id, :]
-                    assert support_db['id'].values[0] == support_id
-
-                    support_data = utils.read_image("./datasets/bdd/" + support_db["file_path"].tolist()[0], format=self.img_format)
-                    support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
-                    support_box = support_db['support_box'].tolist()[0]
-                    support_data_all[mixup_i] = support_data
-                    support_box_all[mixup_i] = support_box
-                    support_category_id.append(support_cls) #1) #support_cls)
-                    mixup_i += 1
+                support_data = utils.read_image("./datasets/bdd/" + support_db["file_path"].tolist()[0], format=self.img_format)
+                support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
+                support_box = support_db['support_box'].tolist()[0]
+                # print('support_data.shape=', support_data.shape)
+                support_data_all[mixup_i] = support_data
+                # print('len(support_box)=', len(support_box))
+                support_box_all[mixup_i] = support_box
+                support_category_id.append(support_cls) #0) #support_cls)
+                mixup_i += 1
         
         return support_data_all, support_box_all, support_category_id

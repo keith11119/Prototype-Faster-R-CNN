@@ -85,8 +85,10 @@ class Trainer(DefaultTrainer):
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         if 'coco' in dataset_name:
             return COCOEvaluator(dataset_name, cfg, True, output_folder)
-        else:
+        elif 'voc' in dataset_name:
             return PascalVOCDetectionEvaluator(dataset_name)
+        elif 'bdd' in dataset_name:
+            return BDDDetectionEvaluator(dataset_name)
 
     @classmethod
     def test(cls, cfg, model, evaluators=None):
@@ -135,11 +137,16 @@ class Trainer(DefaultTrainer):
                 coco_test_shots_set = set([1,2,3,5,10,30])
                 test_shots_join = cur_test_shots_set.intersection(coco_test_shots_set)
                 test_keepclasses = cfg.DATASETS.TEST_KEEPCLASSES
-            else:
+            elif 'vol' in cfg.DATASETS.TRAIN[0]:
                 evaluation_dataset = 'voc'
                 voc_test_shots_set = set([1,2,3,5,10])
                 test_shots_join = cur_test_shots_set.intersection(voc_test_shots_set)
                 test_keepclasses = cfg.DATASETS.TEST_KEEPCLASSES
+            # elif 'bdd' in cfg.DATASETS.TRAIN[0]:
+            #     evaluation_dataset = 'bdd'
+            #     voc_test_shots_set = set([1,2,3,5,10])
+            #     test_shots_join = cur_test_shots_set.intersection(bdd_test_shots_set)
+            #     test_keepclasses = cfg.DATASETS.TEST_KEEPCLASSES
 
             if cfg.INPUT.FS.FEW_SHOT:
                 test_shots = [cfg.INPUT.FS.SUPPORT_SHOT]
