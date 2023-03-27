@@ -194,7 +194,10 @@ def main(root_path, split, keepclasses):
     elif keepclasses == 'novel':
         classnames = BDD_NOVEL_CATEGORIES[1]
 
-    f = open(os.path.join(root_path, dirname, "ImageSets", "Main", split + ".txt").replace('\\','/'))
+    # linux / mac
+    f = open(os.path.join(root_path, dirname, "ImageSets", "Main", split + ".txt")
+    # windows
+    # f = open(os.path.join(root_path, dirname, "ImageSets", "Main", split + ".txt").replace('\\','/'))
     fileids = np.loadtxt(f, dtype=np.str)
 
     support_dict = {}
