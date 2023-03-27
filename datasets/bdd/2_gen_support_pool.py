@@ -195,7 +195,7 @@ def main(root_path, split, keepclasses):
         classnames = BDD_NOVEL_CATEGORIES[1]
 
     # linux / mac
-    f = open(os.path.join(root_path, dirname, "ImageSets", "Main", split + ".txt")
+    f = open(os.path.join(root_path, dirname, "ImageSets", "Main", split + ".txt"))
     # windows
     # f = open(os.path.join(root_path, dirname, "ImageSets", "Main", split + ".txt").replace('\\','/'))
     fileids = np.loadtxt(f, dtype=np.str)

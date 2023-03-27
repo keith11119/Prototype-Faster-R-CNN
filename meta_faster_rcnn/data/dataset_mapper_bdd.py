@@ -61,6 +61,8 @@ class DatasetMapperWithSupportBDD:
         self.few_shot       = cfg.INPUT.FS.FEW_SHOT
         self.support_way    = cfg.INPUT.FS.SUPPORT_WAY
         self.support_shot   = cfg.INPUT.FS.SUPPORT_SHOT
+        self.use_support_shot_ratio = cfg.INPUT.FS.USE_SUPPORT_SHOT_RATIO
+        self.support_shot_ratio = cfg.INPUT.FS.SUPPORT_SHOT_RATIO
         self.seeds          = cfg.DATASETS.SEEDS
         self.support_exclude_query = cfg.INPUT.FS.SUPPORT_EXCLUDE_QUERY
         # fmt: on
@@ -211,7 +213,13 @@ class DatasetMapperWithSupportBDD:
     def generate_support(self, dataset_dict):
         # not using the support_way from config file any more
         # support_way = self.support_way
-        support_shot = self.support_shot #5
+        use_support_shot_ratio = self.use_support_shot_ratio
+
+        if use_support_shot_ratio:
+            support_shot_ratio = self.support_shot_ratio
+        else:
+            support_shot = self.support_shot #5
+        #support_shot_ratio = self.support_shot_ratio
         
         query_cls = dataset_dict['annotations'][0]['category_id']
         query_img = dataset_dict['image_id']
@@ -219,27 +227,28 @@ class DatasetMapperWithSupportBDD:
         # print("all_cls=", all_cls)
         # all_cls = dataset_dict['all_cls']
         all_unique_cls = self.support_df['category_id'].unique()
+
         support_way = len(all_unique_cls)
 
         # Crop support data and get new support box in the support data
-        support_data_all = np.zeros((support_way * support_shot, 3, 320, 320), dtype = np.float32)
-        support_box_all = np.zeros((support_way * support_shot, 4), dtype = np.float32)
+        support_data_all = []
+        support_box_all = []
         if self.support_exclude_query:
             used_image_id = [query_img]
         else:
             used_image_id = []
 
         used_id_ls = []
-        # for item in dataset_dict['annotations']:
-        #     used_id_ls.append(item['id'])
-        #used_category_id = [query_cls]
-
-        used_category_id = list(set(all_cls))
         support_category_id = []
-        mixup_i = 0
 
         for way, current_cls in enumerate(all_unique_cls):
-            for shot in range(support_shot):
+            if use_support_shot_ratio:
+                total_samples_cls = len(self.support_df[self.support_df['category_id'] == current_cls])
+                support_shot_cls = int(total_samples_cls * support_shot_ratio)
+            else:
+                support_shot_cls = support_shot
+
+            for shot in range(support_shot_cls):
                 # Support image and box
                 support_list = self.support_df.loc[(self.support_df['category_id'] == current_cls) & (~self.support_df['image_id'].isin(used_image_id)) & (~self.support_df['id'].isin(used_id_ls)), 'id']
                 if support_list.empty:
@@ -257,11 +266,11 @@ class DatasetMapperWithSupportBDD:
                 support_data = utils.read_image("./datasets/bdd/" + support_db["file_path"].tolist()[0], format=self.img_format)
                 support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
                 support_box = support_db['support_box'].tolist()[0]
-                # print('support_data.shape=', support_data.shape)
-                support_data_all[mixup_i] = support_data
-                # print('len(support_box)=', len(support_box))
-                support_box_all[mixup_i] = support_box
-                support_category_id.append(support_cls) #0) #support_cls)
-                mixup_i += 1
+                support_data_all.append(support_data)
+                support_box_all.append(support_box)
+                support_category_id.append(support_cls)
+
+        support_data_all = np.stack(support_data_all)
+        support_box_all = np.stack(support_box_all)
         
         return support_data_all, support_box_all, support_category_id
