@@ -194,7 +194,7 @@ def main(root_path, split, keepclasses):
     elif keepclasses == 'novel':
         classnames = BDD_NOVEL_CATEGORIES[1]
 
-    f = open(os.path.join(root_path, dirname, "ImageSets", "Main", split + ".txt"))
+    f = open(os.path.join(root_path, dirname, "ImageSets", "Main", split + ".txt").replace('\\','/'))
     fileids = np.loadtxt(f, dtype=np.str)
 
     support_dict = {}
@@ -254,7 +254,7 @@ def main(root_path, split, keepclasses):
 
 
 if __name__ == '__main__':
-    split = 'trainval'
+    split = 'train'
     #keepclasses = 'base'
     keepclasses = 'all'
     # root_path is the abs path of a folder holding BDD
