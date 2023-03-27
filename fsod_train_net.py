@@ -40,12 +40,15 @@ from collections import OrderedDict
 
 import detectron2.utils.comm as comm
 from detectron2.utils.logger import setup_logger
+import torch.cuda.amp as amp
 
 class Trainer(DefaultTrainer):
 
     def __init__(self, cfg):
         super().__init__(cfg)
         self._data_loader_iter = iter(self.build_train_loader(cfg))
+        #AMP
+        self.scaler = amp.GradScaler()
 
     def run_step(self):
 
@@ -53,15 +56,17 @@ class Trainer(DefaultTrainer):
 
         data = next(self._data_loader_iter)
 
-        loss_dict = self.model(data)
-        losses = sum(loss_dict.values())
+        with amp.autocast():
+            loss_dict = self.model(data)
+            losses = sum(loss_dict.values())
 
         self.optimizer.zero_grad()
-        losses.backward()
+        self.scaler.scale(losses).backward()
 
         # Gradient accumulation
         if (self.iter + 1) % self.cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS == 0:
-            self.optimizer.step()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
 
         self._write_metrics(loss_dict)
 
@@ -180,6 +185,7 @@ def setup(args):
 
     # Register the GRADIENT_ACCUMULATION_STEPS key
     cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS = 1
+    cfg.MODEL.FP16_ENABLED = True
 
     cfg.freeze()
     default_setup(cfg, args)
