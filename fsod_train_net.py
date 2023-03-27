@@ -45,7 +45,7 @@ class Trainer(DefaultTrainer):
 
     def __init__(self, cfg):
         super().__init__(cfg)
-        self._data_loader_iter = iter(self.train_loader)
+        self._data_loader_iter = iter(self.build_train_loader(cfg))
 
     def run_step(self):
 
