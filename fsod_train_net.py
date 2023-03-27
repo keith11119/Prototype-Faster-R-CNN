@@ -41,6 +41,7 @@ from collections import OrderedDict
 import detectron2.utils.comm as comm
 from detectron2.utils.logger import setup_logger
 import torch.cuda.amp as amp
+import torch.utils.checkpoint as checkpoint
 
 class Trainer(DefaultTrainer):
 
@@ -57,8 +58,9 @@ class Trainer(DefaultTrainer):
         data = next(self._data_loader_iter)
 
         with amp.autocast():
-            loss_dict = self.model(data)
-            losses = sum(loss_dict.values())
+            # checkpoint
+            loss_dict = checkpoint.checkpoint(self.model, data)
+        losses = sum(loss_dict.values())
 
         self.optimizer.zero_grad()
         self.scaler.scale(losses).backward()
@@ -184,7 +186,7 @@ def setup(args):
     cfg.merge_from_list(args.opts)
 
     # Register the GRADIENT_ACCUMULATION_STEPS key
-    cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS = 1
+    cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS = 2
     cfg.MODEL.FP16_ENABLED = True
 
     cfg.freeze()
