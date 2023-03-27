@@ -43,6 +43,24 @@ from detectron2.utils.logger import setup_logger
 
 class Trainer(DefaultTrainer):
 
+    def run_step(self):
+
+        assert self.model.training, " eval mode to the trainer model"
+
+        data = next(self._data_loader_iter)
+
+        loss_dict = self.model(data)
+        losses = sum(loss_dict.values())
+
+        self.optimizer.zero_grad()
+        losses.backward()
+
+        # Gradient accumulation
+        if (self.iter + 1) % self.cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS == 0:
+            self.optimizer.step()
+
+        self._write_metrics(loss_dict)
+
     @classmethod
     def build_train_loader(cls, cfg):
         """
