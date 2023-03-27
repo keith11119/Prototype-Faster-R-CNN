@@ -43,6 +43,10 @@ from detectron2.utils.logger import setup_logger
 
 class Trainer(DefaultTrainer):
 
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self._data_loader_iter = iter(self.train_loader)
+
     def run_step(self):
 
         assert self.model.training, " eval mode to the trainer model"
