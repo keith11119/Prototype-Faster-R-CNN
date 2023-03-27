@@ -26,7 +26,7 @@ from meta_faster_rcnn.config import get_cfg
 from meta_faster_rcnn.data import DatasetMapperWithSupportCOCO, DatasetMapperWithSupportVOC, DatasetMapperWithSupportBDD
 from meta_faster_rcnn.data.build import build_detection_train_loader, build_detection_test_loader
 from meta_faster_rcnn.solver import build_optimizer
-from meta_faster_rcnn.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
+from meta_faster_rcnn.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator, BDDDetectionEvaluator
 
 import bisect
 import copy
@@ -40,8 +40,36 @@ from collections import OrderedDict
 
 import detectron2.utils.comm as comm
 from detectron2.utils.logger import setup_logger
+import torch.cuda.amp as amp
+import torch.utils.checkpoint as checkpoint
 
 class Trainer(DefaultTrainer):
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self._data_loader_iter = iter(self.build_train_loader(cfg))
+        #AMP
+        self.scaler = amp.GradScaler()
+
+    def run_step(self):
+
+        assert self.model.training, " eval mode to the trainer model"
+
+        data = next(self._data_loader_iter)
+
+        with amp.autocast():
+            loss_dict = self.model(data)
+            losses = sum(loss_dict.values())
+
+        self.optimizer.zero_grad()
+        self.scaler.scale(losses).backward()
+
+        # Gradient accumulation
+        if (self.iter + 1) % self.cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS == 0:
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+
+        self._write_metrics(loss_dict)
 
     @classmethod
     def build_train_loader(cls, cfg):
@@ -129,47 +157,17 @@ class Trainer(DefaultTrainer):
                     results[dataset_name] = {}
                     continue
 
-            test_seeds = cfg.DATASETS.SEEDS
-            test_shots = cfg.DATASETS.TEST_SHOTS
-            cur_test_shots_set = set(test_shots)
-            if 'coco' in cfg.DATASETS.TRAIN[0]:
-                evaluation_dataset = 'coco'
-                coco_test_shots_set = set([1,2,3,5,10,30])
-                test_shots_join = cur_test_shots_set.intersection(coco_test_shots_set)
-                test_keepclasses = cfg.DATASETS.TEST_KEEPCLASSES
-            elif 'vol' in cfg.DATASETS.TRAIN[0]:
-                evaluation_dataset = 'voc'
-                voc_test_shots_set = set([1,2,3,5,10])
-                test_shots_join = cur_test_shots_set.intersection(voc_test_shots_set)
-                test_keepclasses = cfg.DATASETS.TEST_KEEPCLASSES
-            # elif 'bdd' in cfg.DATASETS.TRAIN[0]:
-            #     evaluation_dataset = 'bdd'
-            #     voc_test_shots_set = set([1,2,3,5,10])
-            #     test_shots_join = cur_test_shots_set.intersection(bdd_test_shots_set)
-            #     test_keepclasses = cfg.DATASETS.TEST_KEEPCLASSES
+            results_i = inference_on_dataset(model, data_loader, evaluator)
+            results[dataset_name] = results_i
 
-            if cfg.INPUT.FS.FEW_SHOT:
-                test_shots = [cfg.INPUT.FS.SUPPORT_SHOT]
-                test_shots_join = set(test_shots)
-
-            print("================== test_shots_join=", test_shots_join)
-            for shot in test_shots_join:
-                print("evaluating {}.{} for {} shot".format(evaluation_dataset, test_keepclasses, shot))
-                if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-                    model.module.init_support_features(evaluation_dataset, shot, test_keepclasses, test_seeds)
-                else:
-                    model.init_support_features(evaluation_dataset, shot, test_keepclasses, test_seeds)
-
-                results_i = inference_on_dataset(model, data_loader, evaluator)
-                results[dataset_name] = results_i
-                if comm.is_main_process():
-                    assert isinstance(
-                        results_i, dict
-                    ), "Evaluator must return a dict on the main process. Got {} instead.".format(
-                        results_i
-                    )
-                    logger.info("Evaluation results for {} in csv format:".format(dataset_name))
-                    print_csv_format(results_i)
+            if comm.is_main_process():
+                assert isinstance(
+                    results_i, dict
+                ), "Evaluator must return a dict on the main process. Got {} instead.".format(
+                    results_i
+                )
+                logger.info("Evaluation results for {} in csv format:".format(dataset_name))
+                print_csv_format(results_i)
 
         if len(results) == 1:
             results = list(results.values())[0]
@@ -181,8 +179,15 @@ def setup(args):
     Create configs and perform basic setups.
     """
     cfg = get_cfg()
+    cfg.set_new_allowed(True)
+
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+
+    # Register the GRADIENT_ACCUMULATION_STEPS key
+    cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS = 2
+    cfg.MODEL.FP16_ENABLED = True
+
     cfg.freeze()
     default_setup(cfg, args)
 
