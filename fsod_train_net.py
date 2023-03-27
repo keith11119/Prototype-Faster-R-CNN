@@ -70,15 +70,15 @@ class Trainer(DefaultTrainer):
             self.scaler.update()
 
         # Log losses and other metrics
-        storage = self.storage
-        for k, v in loss_dict.items():
-            storage.put_scalar(k, v.item())
-        storage.put_scalar("lr", self.optimizer.param_groups[0]["lr"])
-        storage.put_scalar("iter", self.iter)
-
-        self._detect_anomaly(losses, loss_dict)
-
-        self.iter += 1
+        # storage = self.storage
+        # for k, v in loss_dict.items():
+        #     storage.put_scalar(k, v.item())
+        # storage.put_scalar("lr", self.optimizer.param_groups[0]["lr"])
+        # storage.put_scalar("iter", self.iter)
+        #
+        # self._detect_anomaly(losses, loss_dict)
+        #
+        # self.iter += 1
 
     @classmethod
     def build_train_loader(cls, cfg):
