@@ -58,9 +58,8 @@ class Trainer(DefaultTrainer):
         data = next(self._data_loader_iter)
 
         with amp.autocast():
-            # checkpoint
-            loss_dict = checkpoint.checkpoint(self.model, data)
-        losses = sum(loss_dict.values())
+            loss_dict = self.model(data)
+            losses = sum(loss_dict.values())
 
         self.optimizer.zero_grad()
         self.scaler.scale(losses).backward()
