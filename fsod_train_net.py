@@ -170,13 +170,12 @@ def setup(args):
     """
     cfg = get_cfg()
     cfg.set_new_allowed(True)
-    cfg.SOLVER.register_key("GRADIENT_ACCUMULATION_STEPS")
-    cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS = 1
 
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
 
     # Register the GRADIENT_ACCUMULATION_STEPS key
+    cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS = 1
 
     cfg.freeze()
     default_setup(cfg, args)
