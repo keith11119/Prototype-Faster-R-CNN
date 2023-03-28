@@ -170,7 +170,8 @@ class FsodRCNN(nn.Module):
                 support_bboxes_ls.append(box.to(self.device))
         
         B, N, C, H, W = support_images.tensor.shape
-        assert N == self.support_way * self.support_shot
+        #assert N == self.support_way * self.support_shot
+        # if it is support ratio, not useful
 
         support_images = support_images.tensor.reshape(B*N, C, H, W)
         support_features = self.backbone(support_images)
