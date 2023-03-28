@@ -112,6 +112,8 @@ def register_all_bdd(root="datasets"):
     # register meta datasets
     METASPLITS = [
         ("bdd_trainval_all", "BDD", "trainval", "all", 1),
+        ("bdd_trainval_all", "BDD", "train", "all", 1),
+        ("bdd_trainval_all", "BDD", "val", "all", 1),
         ("bdd_test_all", "BDD", "test", "all", 1)
     ]
 
