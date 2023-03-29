@@ -241,9 +241,9 @@ def main(root_path, split, keepclasses, shot):
                 if not (cls_ in classnames):
                     continue
 
-                difficult = int(obj.find("difficult").text)
-                if difficult == 1: 
-                    continue
+                # difficult = int(obj.find("difficult").text)
+                # if difficult == 1:
+                #     continue
 
                 bbox = obj.find("bndbox")
                 bbox = [float(bbox.find(x).text) for x in ["xmin", "ymin", "xmax", "ymax"]]
@@ -270,11 +270,11 @@ def main(root_path, split, keepclasses, shot):
 if __name__ == '__main__':
     split = 'trainval'
     keepclasses = 'all'
-    shot = 3
+    shot = 5
     root_path = sys.argv[1]
 
     for keepclasses in ['all',]: #'novel']:
-            for shot in [1,2,3,5,10]:
+            for shot in [5]:
                 print("*******************keepclasses={}, shot={}".format(keepclasses, shot))
 
                 since = time.time()

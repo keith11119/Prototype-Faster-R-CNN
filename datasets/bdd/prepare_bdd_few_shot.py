@@ -45,7 +45,7 @@ def generate_seeds(args):
             data_per_cat[cls].append(anno_file)
 
     result = {cls: {} for cls in data_per_cat.keys()}
-    shots = [1, 10]
+    shots = [5]
     for i in range(args.seeds[0] , args.seeds[1]):
         random.seed(i)
         for c in data_per_cat.keys():
