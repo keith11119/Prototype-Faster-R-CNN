@@ -232,11 +232,11 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
     for imagename in imagenames:
         R = [obj for obj in recs[imagename] if obj["name"] == classname]
         bbox = np.array([x["bbox"] for x in R])
-        difficult = np.array([x["difficult"] for x in R]).astype(np.bool)
+        # difficult = np.array([x["difficult"] for x in R]).astype(np.bool)
         # difficult = np.array([False for x in R]).astype(np.bool)  # treat all "difficult" as GT
         det = [False] * len(R)
-        npos = npos + sum(~difficult)
-        class_recs[imagename] = {"bbox": bbox, "difficult": difficult, "det": det}
+        # npos = npos + sum(~difficult)
+        class_recs[imagename] = {"bbox": bbox, "det": det}
 
     # read dets
     detfile = detpath.format(classname)
@@ -286,12 +286,12 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
             jmax = np.argmax(overlaps)
 
         if ovmax > ovthresh:
-            if not R["difficult"][jmax]:
-                if not R["det"][jmax]:
-                    tp[d] = 1.0
-                    R["det"][jmax] = 1
-                else:
-                    fp[d] = 1.0
+            #if not R["difficult"][jmax]:
+            if not R["det"][jmax]:
+                tp[d] = 1.0
+                R["det"][jmax] = 1
+            else:
+                fp[d] = 1.0
         else:
             fp[d] = 1.0
 
