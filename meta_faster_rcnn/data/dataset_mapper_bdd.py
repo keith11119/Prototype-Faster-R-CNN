@@ -244,7 +244,7 @@ class DatasetMapperWithSupportBDD:
         for way, current_cls in enumerate(all_unique_cls):
             if use_support_shot_ratio:
                 total_samples_cls = len(self.support_df[self.support_df['category_id'] == current_cls])
-                support_shot_cls = max(1, int(total_samples_cls * support_shot_ratio))
+                support_shot_cls = max(2, int(total_samples_cls * support_shot_ratio))
             else:
                 support_shot_cls = support_shot
 
