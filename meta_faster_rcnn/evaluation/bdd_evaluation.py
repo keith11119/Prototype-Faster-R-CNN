@@ -149,10 +149,10 @@ def parse_rec(filename):
         #obj_struct["difficult"] = int(obj.find("difficult").text)
         bbox = obj.find("bndbox")
         obj_struct["bbox"] = [
-            int(bbox.find("xmin").text),
-            int(bbox.find("ymin").text),
-            int(bbox.find("xmax").text),
-            int(bbox.find("ymax").text),
+            round(float(bbox.find("xmin").text)),
+            round(float(bbox.find("ymin").text)),
+            round(float(bbox.find("xmax").text)),
+            round(float(bbox.find("ymax").text)),
         ]
         objects.append(obj_struct)
 
