@@ -235,7 +235,7 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
         # difficult = np.array([x["difficult"] for x in R]).astype(np.bool)
         # difficult = np.array([False for x in R]).astype(np.bool)  # treat all "difficult" as GT
         det = [False] * len(R)
-        # npos = npos + sum(~difficult)
+        npos = npos + len(R)
         class_recs[imagename] = {"bbox": bbox, "det": det}
 
     # read dets
