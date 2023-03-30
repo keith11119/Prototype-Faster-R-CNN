@@ -120,9 +120,9 @@ def load_filtered_bdd_instances(
                 cls = obj.find("name").text
                 if not (cls in classnames):
                     continue
-                difficult = int(obj.find("difficult").text)
-                if difficult == 1:
-                    continue # voc do not use difficult objects to calculate mAP
+                # difficult = int(obj.find("difficult").text)
+                # if difficult == 1:
+                #     continue # voc do not use difficult objects to calculate mAP
                 bbox = obj.find("bndbox")
                 bbox = [float(bbox.find(x).text) for x in ["xmin", "ymin", "xmax", "ymax"]]
                 bbox[0] -= 1.0
