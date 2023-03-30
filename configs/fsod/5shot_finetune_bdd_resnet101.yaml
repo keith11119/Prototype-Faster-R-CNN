@@ -16,9 +16,9 @@ MODEL:
   FEWX_BASELINE: False
   WITH_ALIGNMENT: True
 DATASETS:
-  TRAIN: ("bddtrainval_all_5shot",)
+  TRAIN: ("bdd_trainval_all_5shot",)
   TEST: ("bdd_test_all",)
-  TEST_KEEPCLASSES: 'all1'
+  TEST_KEEPCLASSES: 'all'
 SOLVER:
   IMS_PER_BATCH: 4
   BASE_LR: 0.001
