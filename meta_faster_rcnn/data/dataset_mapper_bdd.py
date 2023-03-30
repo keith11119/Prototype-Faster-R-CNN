@@ -269,7 +269,9 @@ class DatasetMapperWithSupportBDD:
                 support_data_all.append(support_data)
                 support_box_all.append(support_box)
                 support_category_id.append(support_cls)
-
+        print("current_cls=", current_cls)
+        print("shot=",support_shot_cls)
+        print("support_data_size=", support_data.shape)
         support_data_all = np.stack(support_data_all)
         support_box_all = np.stack(support_box_all)
         
