@@ -17,7 +17,7 @@ OUTPUT_DIR: './output/fsod/prototype_training_bdd_resnet101_stage_2'
 INPUT:
   FS:
     SUPPORT_WAY: 10
-    SUPPORT_SHOT: 50
+    SUPPORT_SHOT: 5
   MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800)
   MAX_SIZE_TRAIN: 1333
   MIN_SIZE_TEST: 600
