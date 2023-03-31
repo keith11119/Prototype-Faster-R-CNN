@@ -78,11 +78,7 @@ class FsodRCNN(nn.Module):
         self.keepclasses = keepclasses
         self.test_seeds = test_seeds
 
-        if self.evaluation_dataset == 'voc':
-            self.init_model_voc()
-        elif self.evaluation_dataset == 'coco':
-            self.init_model_coco()
-        elif self.evaluation_dataset == 'bdd':
+        if self.evaluation_dataset == 'bdd':
             self.init_model_bdd()
 
     @property
@@ -359,128 +355,6 @@ class FsodRCNN(nn.Module):
                 del res5_feature
                 del res5_avg
 
-            for res_key, res_dict in self.support_dict.items():
-                for cls_key, feature in res_dict.items():
-                    self.support_dict[res_key][cls_key] = feature.cuda()
-
-            print("min_shot={}, max_shot={}".format(min_shot, max_shot))
-    def init_model_voc(self):
-        if 1:
-            if self.test_seeds == 0:
-                support_path = './datasets/pascal_voc/voc_2007_trainval_{}_{}shot.pkl'.format(self.keepclasses, self.evaluation_shot)
-            elif self.test_seeds >= 0:
-                support_path = './datasets/pascal_voc/seed{}/voc_2007_trainval_{}_{}shot.pkl'.format(self.test_seeds, self.keepclasses, self.evaluation_shot)
-
-            support_df = pd.read_pickle(support_path)
-
-            min_shot = self.evaluation_shot
-            max_shot = self.evaluation_shot
-            self.support_dict = {'res4_avg': {}, 'res5_avg': {}}
-            for cls in support_df['category_id'].unique():
-                support_cls_df = support_df.loc[support_df['category_id'] == cls, :].reset_index()
-                support_data_all = []
-                support_box_all = []
-
-                for index, support_img_df in support_cls_df.iterrows():
-                    img_path = os.path.join('./datasets/pascal_voc', support_img_df['file_path'])
-                    support_data = utils.read_image(img_path, format='BGR')
-                    support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
-                    support_data_all.append(support_data)
-
-                    support_box = support_img_df['support_box']
-                    support_box_all.append(Boxes([support_box]).to(self.device))
-
-                min_shot = min(min_shot, len(support_box_all))
-                max_shot = max(max_shot, len(support_box_all))
-                # support images
-                support_images = [x.to(self.device) for x in support_data_all]
-                support_images = [(x - self.pixel_mean) / self.pixel_std for x in support_images]
-                support_images = ImageList.from_tensors(support_images, self.backbone.size_divisibility)
-                support_features = self.backbone(support_images.tensor)
-
-                res4_pooled = self.roi_heads.roi_pooling(support_features, support_box_all)
-                res4_avg = res4_pooled.mean(0, True)
-                res4_avg = res4_avg.mean(dim=[2,3], keepdim=True)
-                self.support_dict['res4_avg'][cls] = res4_avg.detach().cpu().data
-
-                res5_feature = self.roi_heads._shared_roi_transform([support_features[f] for f in self.in_features], support_box_all)
-                res5_avg = res5_feature.mean(0, True)
-                self.support_dict['res5_avg'][cls] = res5_avg.detach().cpu().data
-
-                del res4_avg
-                del res4_pooled
-                del support_features
-                del res5_feature
-                del res5_avg
-
-            
-            for res_key, res_dict in self.support_dict.items():
-                for cls_key, feature in res_dict.items():
-                    self.support_dict[res_key][cls_key] = feature.cuda()
-
-            print("min_shot={}, max_shot={}".format(min_shot, max_shot))
-
-    def init_model_coco(self):
-        if 1:
-            if self.keepclasses == 'all':
-                if self.test_seeds == 0:
-                    support_path = './datasets/coco/full_class_{}_shot_support_df.pkl'.format(self.evaluation_shot)
-                elif self.test_seeds > 0:
-                    support_path = './datasets/coco/seed{}/full_class_{}_shot_support_df.pkl'.format(self.test_seeds, self.evaluation_shot)
-            else:
-                if self.test_seeds == 0:
-                    support_path = './datasets/coco/{}_shot_support_df.pkl'.format(self.evaluation_shot)
-                elif self.test_seeds > 0:
-                    support_path = './datasets/coco/seed{}/{}_shot_support_df.pkl'.format(self.test_seeds, self.evaluation_shot)
-
-            support_df = pd.read_pickle(support_path)
-
-            metadata = MetadataCatalog.get('coco_2014_train')
-            # unmap the category mapping ids for COCO
-            reverse_id_mapper = lambda dataset_id: metadata.thing_dataset_id_to_contiguous_id[dataset_id]  # noqa
-            support_df['category_id'] = support_df['category_id'].map(reverse_id_mapper)
-
-            min_shot = self.evaluation_shot
-            max_shot = self.evaluation_shot
-            self.support_dict = {'res4_avg': {}, 'res5_avg': {}}
-            for cls in support_df['category_id'].unique():
-                support_cls_df = support_df.loc[support_df['category_id'] == cls, :].reset_index()
-                support_data_all = []
-                support_box_all = []
-
-                for index, support_img_df in support_cls_df.iterrows():
-                    img_path = os.path.join('./datasets/coco', support_img_df['file_path'])
-                    support_data = utils.read_image(img_path, format='BGR')
-                    support_data = torch.as_tensor(np.ascontiguousarray(support_data.transpose(2, 0, 1)))
-                    support_data_all.append(support_data)
-
-                    support_box = support_img_df['support_box']
-                    support_box_all.append(Boxes([support_box]).to(self.device))
-
-                min_shot = min(min_shot, len(support_box_all))
-                max_shot = max(max_shot, len(support_box_all))
-                # support images
-                support_images = [x.to(self.device) for x in support_data_all]
-                support_images = [(x - self.pixel_mean) / self.pixel_std for x in support_images]
-                support_images = ImageList.from_tensors(support_images, self.backbone.size_divisibility)
-                support_features = self.backbone(support_images.tensor)
-
-                res4_pooled = self.roi_heads.roi_pooling(support_features, support_box_all)
-                res4_avg = res4_pooled.mean(0, True)
-                res4_avg = res4_avg.mean(dim=[2,3], keepdim=True)
-                self.support_dict['res4_avg'][cls] = res4_avg.detach().cpu().data
-
-                res5_feature = self.roi_heads._shared_roi_transform([support_features[f] for f in self.in_features], support_box_all)
-                res5_avg = res5_feature.mean(0, True)
-                self.support_dict['res5_avg'][cls] = res5_avg.detach().cpu().data
-
-                del res4_avg
-                del res4_pooled
-                del support_features
-                del res5_feature
-                del res5_avg
-
-            
             for res_key, res_dict in self.support_dict.items():
                 for cls_key, feature in res_dict.items():
                     self.support_dict[res_key][cls_key] = feature.cuda()

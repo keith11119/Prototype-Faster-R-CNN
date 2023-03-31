@@ -4,8 +4,6 @@ Created on Thursday, April 14, 2022
 @author: Guangxing Han
 """
 
-from .dataset_mapper_pascal_voc import DatasetMapperWithSupportVOC
-from .dataset_mapper_coco import DatasetMapperWithSupportCOCO
 from .dataset_mapper_bdd import DatasetMapperWithSupportBDD
 
 from . import datasets  # isort:skip
