@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jan 11 00:22:15 2020
-
-@author: fanq15
+@modified form fanq15
 """
 import numpy as np
 #from PIL import Image #, ImageOps, ImageDraw

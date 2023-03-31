@@ -1,8 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 """
-Modified on Thursday, April 14, 2022
-
-@author: Guangxing Han
+modified from Guangxing Han's work
 """
 import inspect
 import logging

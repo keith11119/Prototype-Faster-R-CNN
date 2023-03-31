@@ -6,7 +6,7 @@ Created on Thursday, April 14, 2022
 
 This script is a simplified version of the training script in detectron2/tools.
 
-@author: Guangxing Han
+@modified from Guangxing Han's work
 """
 
 import os

@@ -3,7 +3,7 @@
 """
 Modified on Thursday, April 14, 2022
 
-@author: Guangxing Han
+@modified from Guangxing Han's work
 """
 
 from fvcore.common.file_io import PathManager

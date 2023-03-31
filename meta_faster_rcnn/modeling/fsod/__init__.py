@@ -1,7 +1,6 @@
 """
-Created on Thursday, April 14, 2022
 
-@author: Guangxing Han
+@modified from Guangxing Han's work
 """
 from .fsod_rcnn import FsodRCNN
 from .fsod_roi_heads import FsodRes5ROIHeads

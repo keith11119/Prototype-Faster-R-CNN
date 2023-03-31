@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 """
-Created on Thursday, April 14, 2022
 
-@author: Guangxing Han
+@moodified from Guangxing Han's work
 """
 
 # BDD categories
