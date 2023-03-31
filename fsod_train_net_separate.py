@@ -6,7 +6,7 @@ Created on Thursday, April 14, 2022
 
 This script is a simplified version of the training script in detectron2/tools.
 
-@author: Guangxing Han
+@modified from Guangxing Han's work
 """
 
 import os
@@ -23,10 +23,10 @@ from detectron2.evaluation import (
 )
 
 from meta_faster_rcnn.config import get_cfg
-from meta_faster_rcnn.data import DatasetMapperWithSupportCOCO, DatasetMapperWithSupportVOC, DatasetMapperWithSupportBDD
+from meta_faster_rcnn.data import  DatasetMapperWithSupportBDD
 from meta_faster_rcnn.data.build import build_detection_train_loader, build_detection_test_loader
 from meta_faster_rcnn.solver import build_optimizer
-from meta_faster_rcnn.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator, BDDDetectionEvaluator
+from meta_faster_rcnn.evaluation import  BDDDetectionEvaluator
 
 import bisect
 import copy
@@ -79,11 +79,7 @@ class Trainer(DefaultTrainer):
         It calls :func:`detectron2.data.build_detection_train_loader` with a customized
         DatasetMapper, which adds categorical labels as a semantic mask.
         """
-        if 'coco' in cfg.DATASETS.TRAIN[0]:
-            mapper = DatasetMapperWithSupportCOCO(cfg)
-        elif 'voc' in cfg.DATASETS.TRAIN[0]:
-            mapper = DatasetMapperWithSupportVOC(cfg)
-        elif 'bdd' in cfg.DATASETS.TRAIN[0]:
+        if 'bdd' in cfg.DATASETS.TRAIN[0]:
             mapper = DatasetMapperWithSupportBDD(cfg)
         return build_detection_train_loader(cfg, mapper)
 
@@ -111,11 +107,8 @@ class Trainer(DefaultTrainer):
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
         if output_folder is None:
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
-        if 'coco' in dataset_name:
-            return COCOEvaluator(dataset_name, cfg, True, output_folder)
-        elif 'voc' in dataset_name:
-            return PascalVOCDetectionEvaluator(dataset_name)
-        elif 'bdd' in dataset_name:
+
+        if 'bdd' in dataset_name:
             return BDDDetectionEvaluator(dataset_name)
 
     @classmethod

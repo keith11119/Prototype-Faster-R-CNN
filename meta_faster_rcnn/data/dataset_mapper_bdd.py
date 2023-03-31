@@ -1,8 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 """
-Modified on Thursday, April 14, 2022
-
-@author: Guangxing Han
+@modified from Guangxing Han's work
 """
 import copy
 import logging
@@ -273,7 +271,7 @@ class DatasetMapperWithSupportBDD:
             print("shot=",support_shot_cls)
             print("support_data_size=", support_data.shape)
             print("support_shot_cls=", support_shot_cls)
-            print("support_shot_cls=", total_samples_cls)
+            #print("support_shot_cls=", total_samples_cls)
         support_data_all = np.stack(support_data_all)
         support_box_all = np.stack(support_box_all)
         

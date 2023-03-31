@@ -3,7 +3,7 @@
 """
 Modified on Thursday, April 14, 2022
 
-@author: Guangxing Han
+@modified from Guangxing Han's work
 """
 
 import bisect
@@ -26,8 +26,6 @@ from detectron2.utils.logger import log_first_n
 from detectron2.data.catalog import DatasetCatalog, MetadataCatalog
 from detectron2.data.common import AspectRatioGroupedDataset, DatasetFromList, MapDataset
 # from detectron2.data.dataset_mapper import DatasetMapper
-from meta_faster_rcnn.data.dataset_mapper_pascal_voc import DatasetMapperWithSupportVOC
-from meta_faster_rcnn.data.dataset_mapper_coco import DatasetMapperWithSupportCOCO
 from meta_faster_rcnn.data.dataset_mapper_bdd import DatasetMapperWithSupportBDD
 from detectron2.data.detection_utils import check_metadata_consistency
 from detectron2.data.samplers import InferenceSampler, RepeatFactorTrainingSampler, TrainingSampler
@@ -147,11 +145,7 @@ def build_detection_train_loader(cfg, mapper=None):
     dataset = DatasetFromList(dataset_dicts, copy=False)
     
     if mapper is None:
-        if 'coco' in cfg.DATASETS.TRAIN[0]:
-            mapper = DatasetMapperWithSupportCOCO(cfg, True)
-        elif 'voc' in cfg.DATASETS.TRAIN[0]:
-            mapper = DatasetMapperWithSupportVOC(cfg, True)
-        elif 'bdd' in cfg.DATASETS.TRAIN[0]:
+        if 'bdd' in cfg.DATASETS.TRAIN[0]:
             mapper = DatasetMapperWithSupportBDD(cfg, True)
     dataset = MapDataset(dataset, mapper)
 
@@ -202,11 +196,7 @@ def build_detection_test_loader(cfg, dataset_name, mapper=None):
     )
     dataset = DatasetFromList(dataset_dicts)
     if mapper is None:
-        if 'coco' in cfg.DATASETS.TRAIN[0]:
-            mapper = DatasetMapperWithSupportCOCO(cfg, False)
-        elif 'voc' in cfg.DATASETS.TRAIN[0]:
-            mapper = DatasetMapperWithSupportVOC(cfg, False)
-        elif 'bdd' in cfg.DATASETS.TRAIN[0]:
+        if 'bdd' in cfg.DATASETS.TRAIN[0]:
             mapper = DatasetMapperWithSupportBDD(cfg, False)
     dataset = MapDataset(dataset, mapper)
 
