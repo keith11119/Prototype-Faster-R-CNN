@@ -180,7 +180,7 @@ class Trainer(DefaultTrainer):
                 test_keepclasses = cfg.DATASETS.TEST_KEEPCLASSES
             elif 'bdd' in cfg.DATASETS.TRAIN[0]:
                 evaluation_dataset = 'bdd'
-                voc_test_shots_set = set([1,2, 3, 5, 10])
+                voc_test_shots_set = set([1,2, 3, 5, 10, 1000])
                 test_shots_join = cur_test_shots_set.intersection(voc_test_shots_set)
                 test_keepclasses = cfg.DATASETS.TEST_KEEPCLASSES
 
