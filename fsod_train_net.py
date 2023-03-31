@@ -55,7 +55,8 @@ class Trainer(DefaultTrainer):
         assert self.model.training, " eval mode to the trainer model"
 
         data = next(self._data_loader_iter)
-
+        
+        # AMP 
         with amp.autocast():
             loss_dict = self.model(data)
             losses = sum(loss_dict.values())
@@ -63,7 +64,7 @@ class Trainer(DefaultTrainer):
         self.optimizer.zero_grad()
         self.scaler.scale(losses).backward()
 
-        # Gradient accumulation
+        # Gradient Accumulation
         if (self.iter + 1) % self.cfg.SOLVER.GRADIENT_ACCUMULATION_STEPS == 0:
             self.scaler.step(self.optimizer)
             self.scaler.update()
